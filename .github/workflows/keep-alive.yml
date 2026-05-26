@@ -1,0 +1,18 @@
+name: Keep HuggingFace Space Alive
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping HuggingFace Space
+        run: |
+          # 请将下面的 URL 改为你的 HuggingFace Space 地址
+          curl -s -o /dev/null -w "%{http_code}" https://huggingface.co/spaces/<YOUR_USERNAME>/<YOUR_SPACE_NAME> || true
+          curl -s -o /dev/null -w "%{http_code}" https://<YOUR_USERNAME>-<YOUR_SPACE_NAME>.hf.space || true
+      - name: Log status
+        run: echo "Keep-alive ping sent at $(date)"
