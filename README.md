@@ -1,5 +1,5 @@
 ---
-title: CHATSAM - ChatGPT2API with Data Persistence
+title: CHATSAM - ChatGPT2API 数据持久化版本
 emoji: 🎨
 colorFrom: blue
 colorTo: purple
@@ -58,35 +58,41 @@ pinned: false
 
 ### 步骤 1：创建 HuggingFace Space
 
+**HuggingFace Spaces** 是 HuggingFace 提供的免费托管平台，可以运行 Docker 容器。
+
 1. 登录 [HuggingFace](https://huggingface.co)
-2. 点击右上角 **"Create Space"**
+2. 点击右上角 **"Create Space"**（创建空间）
 3. 填写信息：
    - **Space name**: 你的项目名称（如 `my-chatsam`）
-   - **SDK**: 选择 **Docker**
-   - **Hardware**: 选择 **CPU basic**（免费）
-4. 点击 **"Create Space"**
+   - **SDK**: 选择 **Docker**（容器运行环境）
+   - **Hardware**: 选择 **CPU basic**（免费，2核CPU，16GB内存）
+4. 点击 **"Create Space"**（创建空间）
 
 ### 步骤 2：克隆此项目并推送
 
+**克隆** 是从 GitHub 下载项目代码到本地。
+
 ```bash
-# 克隆此项目
+# 克隆此项目（从 GitHub 下载代码）
 git clone https://github.com/chanzsam/CHATSAM-Public.git
 cd CHATSAM-Public
 
-# 添加 HuggingFace 远程仓库
+# 添加 HuggingFace 远程仓库（连接到你的 HF Space）
 git remote add hf https://huggingface.co/spaces/<你的HF用户名>/<你的Space名称>
 
-# 推送到 HuggingFace
+# 推送到 HuggingFace（上传代码到 HF）
 git push hf main
 ```
 
 ### 步骤 3：配置管理员密码
 
+**Secrets** 是 HuggingFace 提供的加密存储，用于保存敏感信息（如密码、Token）。
+
 在 Space 的 **Settings → Variables and secrets** 中添加：
 
-| Secret 名称 | Secret 值 |
-|------------|-----------|
-| `CHATGPT2API_AUTH_KEY` | `你的管理员密码`（建议使用强密码） |
+| Secret 名称 | Secret 值 | 中文说明 |
+|------------|-----------|---------|
+| `CHATGPT2API_AUTH_KEY` | `你的管理员密码` | 管理员登录密码，建议使用强密码 |
 
 ---
 
@@ -94,10 +100,13 @@ git push hf main
 
 ### 为什么需要数据持久化？
 
-HuggingFace Spaces 使用 **临时存储 (Ephemeral Storage)**：
-- ⚠️ 48 小时无访问 → 容器休眠 → 数据丢失
-- ⚠️ 推送新代码 → 容器重建 → 数据丢失
-- ⚠️ 资源限制重启 → 数据丢失
+**HuggingFace Spaces** 使用 **临时存储 (Ephemeral Storage)**：
+
+| 问题 | 原因 | 结果 |
+|------|------|------|
+| 48小时无访问 | 容器休眠 | 数据丢失 |
+| 推送新代码 | 容器重建 | 数据丢失 |
+| 资源限制重启 | 内存超限 | 数据丢失 |
 
 **解决方案**：使用 Git 仓库存储后端，数据永久保存！
 
@@ -105,17 +114,19 @@ HuggingFace Spaces 使用 **临时存储 (Ephemeral Storage)**：
 
 #### 1️⃣ 创建 GitHub 数据存储仓库
 
+**数据仓库** 是专门用于存储项目数据的 GitHub 仓库，建议设置为**私有**。
+
 1. 在 GitHub 创建一个新的**私有仓库**（如 `my-chatsam-data`）
 2. 在仓库中创建以下文件：
 
-**accounts.json**
+**accounts.json** - 存储账号信息
 ```json
 {
   "items": []
 }
 ```
 
-**auth_keys.json**
+**auth_keys.json** - 存储用户认证密钥
 ```json
 {
   "items": []
@@ -126,30 +137,32 @@ HuggingFace Spaces 使用 **临时存储 (Ephemeral Storage)**：
 
 #### 2️⃣ 创建 GitHub Personal Access Token
 
+**Personal Access Token (PAT)** 是 GitHub 的访问令牌，用于授权第三方应用访问你的仓库。
+
 1. 访问 [GitHub Token 设置](https://github.com/settings/tokens)
-2. 点击 **"Generate new token (classic)"**
+2. 点击 **"Generate new token (classic)"**（生成新令牌）
 3. 填写信息：
-   - **Note**: `CHATSAM Data Storage`
-   - **Expiration**: `No expiration`（或选择较长时间）
-   - **Select scopes**: 选择 **`repo`**（完整仓库访问）
-4. 点击 **"Generate token"**
+   - **Note**: `CHATSAM Data Storage`（令牌名称）
+   - **Expiration**: `No expiration`（永不过期，或选择较长时间）
+   - **Select scopes**: 选择 **`repo`**（完整仓库访问权限）
+4. 点击 **"Generate token"**（生成令牌）
 5. ⚠️ **复制 Token**（只显示一次，请妥善保存）
 
 #### 3️⃣ 配置 HuggingFace Secrets
 
 在 Space 的 **Settings → Variables and secrets** 中添加：
 
-| Secret 名称 | Secret 值 | 说明 |
-|------------|-----------|------|
-| `STORAGE_BACKEND` | `git` | 使用 Git 存储 |
+| Secret 名称 | Secret 值 | 中文说明 |
+|------------|-----------|---------|
+| `STORAGE_BACKEND` | `git` | 存储后端类型，使用 Git 存储 |
 | `GIT_REPO_URL` | `https://github.com/<你的用户名>/<数据仓库名>.git` | 数据仓库地址 |
-| `GIT_TOKEN` | `ghp_xxxxxxxxxxxx` | GitHub Token |
+| `GIT_TOKEN` | `ghp_xxxxxxxxxxxx` | GitHub 访问令牌 |
 
 #### 4️⃣ 重启 Space
 
 添加 Secrets 后：
 1. 回到 Space 主页
-2. 点击右上角 **"⋯"** → **"Factory reboot"**
+2. 点击右上角 **"⋯"** → **"Factory reboot"**（工厂重启）
 3. 等待约 5-10 分钟重新构建
 
 #### 5️⃣ 验证数据持久化
@@ -165,9 +178,12 @@ HuggingFace Spaces 使用 **临时存储 (Ephemeral Storage)**：
 
 ### 为什么需要防止休眠？
 
-HuggingFace Spaces 免费 48 小时无访问会自动休眠：
-- 休眠后冷启动需要 **1-3 分钟**
-- 用户体验不佳
+**HuggingFace Spaces** 免费 48 小时无访问会自动休眠：
+
+| 问题 | 影响 |
+|------|------|
+| 休眠后冷启动 | 需要 1-3 分钟 |
+| 用户体验不佳 | 等待时间长 |
 
 **解决方案**：使用 GitHub Actions 每 12 小时自动访问！
 
@@ -175,21 +191,27 @@ HuggingFace Spaces 免费 48 小时无访问会自动休眠：
 
 #### 1️⃣ Fork 此项目到你的 GitHub
 
+**Fork** 是复制别人的 GitHub 项目到你的账号下。
+
 访问 https://github.com/chanzsam/CHATSAM-Public 并点击 **"Fork"**
 
 #### 2️⃣ 启用 GitHub Actions
 
+**GitHub Actions** 是 GitHub 提供的自动化工作流服务。
+
 1. 进入你的 Fork 仓库
 2. 点击 **Settings → Actions → General**
-3. 选择 **"Allow all actions and reusable workflows"**
-4. 点击 **"Save"**
+3. 选择 **"Allow all actions and reusable workflows"**（允许所有工作流）
+4. 点击 **"Save"**（保存）
 
 #### 3️⃣ 修改保活 Workflow
+
+**Workflow** 是 GitHub Actions 的自动化任务配置文件。
 
 编辑 `.github/workflows/keep-alive.yml`：
 
 ```yaml
-name: Keep HuggingFace Space Alive
+name: Keep HuggingFace Space Alive  # 工作流名称
 
 on:
   schedule:
@@ -198,14 +220,14 @@ on:
 
 jobs:
   keep-alive:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # 运行环境
     steps:
-      - name: Ping HuggingFace Space
+      - name: Ping HuggingFace Space  # 步骤名称
         run: |
           # ⚠️ 请修改为你的 Space 地址
           curl -s https://huggingface.co/spaces/<你的HF用户名>/<你的Space名称>
           curl -s https://<你的HF用户名>-<你的Space名称>.hf.space
-      - name: Log status
+      - name: Log status  # 记录日志
         run: echo "Keep-alive ping sent at $(date)"
 ```
 
@@ -236,17 +258,19 @@ git push
 
 部署前需要修改以下文件：
 
-| 文件 | 修改内容 | 必需 |
-|------|---------|------|
-| `.github/workflows/keep-alive.yml` | 修改 HF Space 地址 | ✅ 必需 |
-| `config.json` | 修改管理员密码（或使用 Secrets） | ✅ 必需 |
-| HF Secrets | 配置存储后端 | 推荐 |
+| 文件路径 | 修改内容 | 是否必需 | 中文说明 |
+|---------|---------|---------|---------|
+| `.github/workflows/keep-alive.yml` | 修改 HF Space 地址 | ✅ 必需 | 保活工作流配置 |
+| `config.json` | 修改管理员密码 | ✅ 必需 | 项目配置文件 |
+| HF Secrets | 配置存储后端 | 推荐 | HuggingFace 加密存储 |
 
 ---
 
 ### 1️⃣ `.github/workflows/keep-alive.yml`
 
-**位置**: `.github/workflows/keep-alive.yml`
+**文件位置**: `.github/workflows/keep-alive.yml`
+
+**文件说明**: GitHub Actions 保活工作流配置文件，用于定时访问 HuggingFace Space 防止休眠。
 
 **需要修改**:
 
@@ -269,7 +293,9 @@ curl -s https://myuser-my-chatsam.hf.space
 
 ### 2️⃣ `config.json`
 
-**位置**: `config.json`
+**文件位置**: `config.json`
+
+**文件说明**: 项目主配置文件，包含管理员密码、代理设置、备份配置等。
 
 **需要修改**:
 
@@ -283,20 +309,35 @@ curl -s https://myuser-my-chatsam.hf.space
 
 在 HF Space Settings 中添加 `CHATGPT2API_AUTH_KEY`，会覆盖 `config.json` 中的设置。
 
+**完整配置说明**:
+
+| 配置项 | 默认值 | 中文说明 |
+|--------|-------|---------|
+| `auth-key` | `YOUR_SECRET_KEY_HERE` | 管理员登录密码 |
+| `refresh_account_interval_minute` | `60` | 账号刷新间隔（分钟） |
+| `image_retention_days` | `15` | 图片保留天数 |
+| `image_poll_timeout_secs` | `120` | 图片生成超时时间（秒） |
+| `auto_remove_rate_limited_accounts` | `false` | 自动移除限速账号 |
+| `auto_remove_invalid_accounts` | `true` | 自动移除无效账号 |
+| `proxy` | `""` | 代理服务器地址 |
+| `base_url` | `""` | API 基础地址 |
+
 ---
 
 ### 3️⃣ HuggingFace Secrets
 
 **位置**: Space Settings → Variables and secrets
 
+**说明**: HuggingFace 提供的加密存储，用于保存敏感信息。
+
 **需要添加**:
 
-| Secret 名称 | 值示例 | 说明 |
-|------------|-------|------|
-| `CHATGPT2API_AUTH_KEY` | `MyStrongPassword123!` | 管理员密码 |
+| Secret 名称 | 值示例 | 中文说明 |
+|------------|-------|---------|
+| `CHATGPT2API_AUTH_KEY` | `MyStrongPassword123!` | 管理员登录密码 |
 | `STORAGE_BACKEND` | `git` | 存储后端类型 |
 | `GIT_REPO_URL` | `https://github.com/myuser/my-data.git` | 数据仓库地址 |
-| `GIT_TOKEN` | `ghp_xxxxxxxxxxxx` | GitHub Token |
+| `GIT_TOKEN` | `ghp_xxxxxxxxxxxx` | GitHub 访问令牌 |
 
 ---
 
@@ -304,43 +345,50 @@ curl -s https://myuser-my-chatsam.hf.space
 
 ### API 兼容能力
 
-- 兼容 `POST /v1/images/generations` 图片生成接口
-- 兼容 `POST /v1/images/edits` 图片编辑接口
-- 兼容面向图片场景的 `POST /v1/chat/completions`
-- 兼容面向图片场景的 `POST /v1/responses`
-- `GET /v1/models` 返回可用模型列表
+| API 接口 | 中文说明 |
+|---------|---------|
+| `POST /v1/images/generations` | 图片生成接口 |
+| `POST /v1/images/edits` | 图片编辑接口 |
+| `POST /v1/chat/completions` | 图片场景对话接口 |
+| `POST /v1/responses` | 图片场景响应接口 |
+| `GET /v1/models` | 获取可用模型列表 |
 
 ### 在线画图功能
 
-- 内置在线画图工作台
-- 支持 `gpt-image-2`、`codex-gpt-image-2`、`auto` 等模型
-- 编辑模式支持参考图上传
-- 本地保存图片会话历史
+| 功能 | 中文说明 |
+|------|---------|
+| 内置在线画图工作台 | 提供可视化界面 |
+| 支持 `gpt-image-2` 等模型 | 多种图片生成模型 |
+| 编辑模式支持参考图上传 | 可上传图片进行编辑 |
+| 本地保存图片会话历史 | 记录生成历史 |
 
 ### 号池管理功能
 
-- 自动刷新账号邮箱、类型、额度
-- 轮询可用账号执行图片生成
-- 自动剔除无效 Token
-- 支持多种导入方式
+| 功能 | 中文说明 |
+|------|---------|
+| 自动刷新账号邮箱、类型、额度 | 自动更新账号信息 |
+| 轮询可用账号执行图片生成 | 自动选择可用账号 |
+| 自动剔除无效 Token | 自动清理无效账号 |
+| 支持多种导入方式 | 支持批量导入账号 |
 
 ### 数据持久化
 
-- 支持 Git 仓库存储
-- 支持 PostgreSQL 存储
-- 支持 SQLite 存储
-- 配置、账号、用户数据永久保存
+| 存储类型 | 中文说明 |
+|---------|---------|
+| Git 仓库存储 | 数据保存到 GitHub |
+| PostgreSQL 存储 | 数据保存到数据库 |
+| SQLite 存储 | 数据保存到本地文件 |
 
 ---
 
 ## 📋 部署清单
 
-| 配置项 | 说明 | 必需 | 配置方式 |
-|--------|------|------|---------|
+| 配置项 | 中文说明 | 是否必需 | 配置方式 |
+|--------|---------|---------|---------|
 | `CHATGPT2API_AUTH_KEY` | 管理员密码 | ✅ 必需 | HF Secrets |
 | `STORAGE_BACKEND` | 存储后端类型 | 推荐 | HF Secrets |
 | `GIT_REPO_URL` | Git 数据仓库地址 | 推荐 | HF Secrets |
-| `GIT_TOKEN` | GitHub Token | 推荐 | HF Secrets |
+| `GIT_TOKEN` | GitHub 访问令牌 | 推荐 | HF Secrets |
 | `keep-alive.yml` | 保活 URL | ✅ 必需 | 修改文件 |
 
 ---
@@ -348,6 +396,8 @@ curl -s https://myuser-my-chatsam.hf.space
 ## 🔧 本地开发
 
 ### Docker 运行
+
+**Docker** 是容器化运行环境，可以在本地模拟 HuggingFace Spaces。
 
 ```bash
 docker compose up -d
@@ -358,14 +408,14 @@ docker compose up -d
 ### 本地开发
 
 ```bash
-# 后端
-uv sync
-uv run main.py
+# 后端（Python 服务）
+uv sync  # 安装依赖
+uv run main.py  # 启动服务
 
-# 前端
+# 前端（Web 界面）
 cd web
-bun install
-bun run dev
+bun install  # 安装依赖
+bun run dev  # 启动开发服务器
 ```
 
 ---
@@ -376,8 +426,8 @@ bun run dev
 
 ### 界面预览
 
-| 功能 | 说明 |
-|------|------|
+| 功能 | 中文说明 |
+|------|---------|
 | **文生图界面** | 输入提示词生成图片 |
 | **编辑图界面** | 上传图片进行编辑 |
 | **号池管理** | 管理账号和额度 |
@@ -398,7 +448,7 @@ bun run dev
 
 ## 📄 License
 
-MIT License
+MIT License（MIT 开源许可证）
 
 ---
 
