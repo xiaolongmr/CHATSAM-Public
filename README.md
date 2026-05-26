@@ -112,9 +112,56 @@ git push hf main
 
 ### 配置步骤
 
+#### 0️⃣ 创建 GitHub Personal Access Token（必需）
+
+**Personal Access Token (PAT)** 是 GitHub 的访问令牌，用于授权第三方应用访问你的仓库。
+
+1. 访问 [GitHub Token 设置](https://github.com/settings/tokens)
+2. 点击 **"Generate new token (classic)"**（生成新令牌）
+3. 填写信息：
+   - **Note**: `CHATSAM Data Storage`（令牌名称）
+   - **Expiration**: `No expiration`（永不过期，或选择较长时间）
+   - **Select scopes**: 选择 **`repo`**（完整仓库访问权限）
+4. 点击 **"Generate token"**（生成令牌）
+5. ⚠️ **复制 Token**（只显示一次，请妥善保存）
+
+---
+
 #### 1️⃣ 创建 GitHub 数据存储仓库
 
 **数据仓库** 是专门用于存储项目数据的 GitHub 仓库，建议设置为**私有**。
+
+**方式 A：使用一键脚本（推荐）**
+
+```bash
+# 克隆项目
+git clone https://github.com/chanzsam/CHATSAM-Public.git
+cd CHATSAM-Public
+
+# 安装依赖
+pip install requests
+
+# 运行一键脚本
+python scripts/create_data_repo.py --token ghp_xxxxxxxxxxxx --repo-name my-chatsam-data
+```
+
+**脚本功能**：
+- ✅ 自动创建私有仓库
+- ✅ 自动创建 `accounts.json` 和 `auth_keys.json` 文件
+- ✅ 自动推送到 GitHub
+- ✅ 输出配置信息，方便复制到 HuggingFace
+
+**参数说明**：
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--token` | GitHub Personal Access Token | 从环境变量 `GITHUB_TOKEN` 读取 |
+| `--repo-name` | 仓库名称 | `chatsam-data` |
+| `--public` | 创建公开仓库 | 默认私有 |
+
+---
+
+**方式 B：手动创建**
 
 1. 在 GitHub 创建一个新的**私有仓库**（如 `my-chatsam-data`）
 2. 在仓库中创建以下文件：
@@ -135,20 +182,7 @@ git push hf main
 
 3. 推送到 GitHub
 
-#### 2️⃣ 创建 GitHub Personal Access Token
-
-**Personal Access Token (PAT)** 是 GitHub 的访问令牌，用于授权第三方应用访问你的仓库。
-
-1. 访问 [GitHub Token 设置](https://github.com/settings/tokens)
-2. 点击 **"Generate new token (classic)"**（生成新令牌）
-3. 填写信息：
-   - **Note**: `CHATSAM Data Storage`（令牌名称）
-   - **Expiration**: `No expiration`（永不过期，或选择较长时间）
-   - **Select scopes**: 选择 **`repo`**（完整仓库访问权限）
-4. 点击 **"Generate token"**（生成令牌）
-5. ⚠️ **复制 Token**（只显示一次，请妥善保存）
-
-#### 3️⃣ 配置 HuggingFace Secrets
+#### 2️⃣ 配置 HuggingFace Secrets
 
 在 Space 的 **Settings → Variables and secrets** 中添加：
 
@@ -158,14 +192,14 @@ git push hf main
 | `GIT_REPO_URL` | `https://github.com/<你的用户名>/<数据仓库名>.git` | 数据仓库地址 |
 | `GIT_TOKEN` | `ghp_xxxxxxxxxxxx` | GitHub 访问令牌 |
 
-#### 4️⃣ 重启 Space
+#### 3️⃣ 重启 Space
 
 添加 Secrets 后：
 1. 回到 Space 主页
 2. 点击右上角 **"⋯"** → **"Factory reboot"**（工厂重启）
 3. 等待约 5-10 分钟重新构建
 
-#### 5️⃣ 验证数据持久化
+#### 4️⃣ 验证数据持久化
 
 1. 登录你的 Space
 2. 添加一个测试用户
