@@ -11,8 +11,8 @@ jobs:
     steps:
       - name: Ping HuggingFace Space
         run: |
-          # 请将下面的 URL 改为你的 HuggingFace Space 地址
-          curl -s -o /dev/null -w "%{http_code}" https://huggingface.co/spaces/<YOUR_USERNAME>/<YOUR_SPACE_NAME> || true
-          curl -s -o /dev/null -w "%{http_code}" https://<YOUR_USERNAME>-<YOUR_SPACE_NAME>.hf.space || true
+          # 请将下面�?URL 改为你的 HuggingFace Space 地址
+          curl -s -o /dev/null -w "%{http_code}" https://huggingface.co/spaces/zlcy/CHATSAM-Public || true
+          curl -s -o /dev/null -w "%{http_code}" https://zlcy-CHATSAM-Public.hf.space || true
       - name: Log status
         run: echo "Keep-alive ping sent at $(date)"
